@@ -38,12 +38,16 @@ def features():
     orders = pd.read_csv('Files/orders.csv')
     prior_orders = pd.read_csv('Files/order_products__prior.csv')
 
-    # merge the two dataframes
-    orders.merge(prior_orders, on='order_id', how='left')
+    # merge the two dataframes. Merging directly to orders gets rid of product_id
+    extra = orders.merge(prior_orders, on='order_id', how='left')
 
     # create new dataframe that will be used to show how often a user purhcases a product
-    user_product_purchases = orders.groupby(['user_id', 'product_id'])[['order_id']].count()
+    user_product_purchases = extra.groupby(['user_id', 'product_id'])[['order_id']].count()
     user_product_purchases.columns = ['total_purchased']
+    user_product_purchases = user_product_purchases.reset_index()
+
+    items = user_product_purchases[user_product_purchases.total_purchased == 1].groupby('product_id')[['total_purchased']].count()
+    items.columns = ['']
     
     # garbage collect
     gc.collect()
